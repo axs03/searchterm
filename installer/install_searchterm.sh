@@ -3,7 +3,7 @@
 clear
 
 echo "=========================================="
-echo "       Searchterm Installation Script    "
+echo "       SearchTerm Installation Script    "
 echo "=========================================="
 echo ""
 
@@ -35,12 +35,12 @@ echo -e "${GREEN}pip3 is available${NC}"
 # Navigate to the parent directory (where setup.py is located)
 cd "$(dirname "$0")/.."
 
-echo -e "${BLUE}Installing searchterm...${NC}"
+echo -e "${BLUE}Installing SearchTerm...${NC}"
 echo "Current directory: $(pwd)"
 
 # Install the package in development mode
 if pip3 install -e .; then
-    echo -e "${GREEN}✓ Searchterm installed successfully!${NC}"
+    echo -e "${GREEN}✓ SearchTerm installed successfully!${NC}"
 else
     echo -e "${RED}✗ Installation failed!${NC}"
     exit 1

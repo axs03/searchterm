@@ -65,13 +65,19 @@ def get_model_path():
     return home_models
 
 
+def model_exists(model_name, model_path):
+    """Check if the specified model file exists in the given path"""
+    model_file = os.path.join(model_path, model_name)
+    return os.path.exists(model_file)
+
+
 def main():
-    """Main entry point for the searchterm command"""
     config = configparser.ConfigParser()
     config_path = get_config_path()
     config.read(config_path)
 
-    # Get configuration values
+
+    # get the configuration values
     try:
         MAX_TOKENS = config.getint("Model Settings", "MAX_TOKENS")
         TEMP = config.getfloat("Model Settings", "TEMP")
@@ -83,16 +89,36 @@ def main():
         print("Please check your configuration file.")
         sys.exit(1)
 
+    # finding the model if it exists
     MODEL_PATH = get_model_path()
 
-    # Check if model file exists
-    model_file = os.path.join(MODEL_PATH, MODEL)
-    if not os.path.exists(model_file):
-        print(f"Error: Model file not found at {model_file}")
-        print(f"Please place your model file in the {MODEL_PATH} directory.")
-        print(f"Expected model: {MODEL}")
+    # handling model download if it does not exist
+    try:
+        print("Checking for model...")
+        model_config = GPT4All.retrieve_model(
+            model_name=MODEL,
+            model_path=MODEL_PATH,
+            allow_download=True,
+            verbose=True
+        )
+        print(f"Model ready at: {model_config['path']}")
+        
+        # create the model instance using the retrieved config
+        model = GPT4All(
+            model_name=MODEL,
+            model_path=MODEL_PATH,
+            allow_download=False  # already handled download above
+        )      
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        print(f"Failed to find or download model: {MODEL}")
+        print(f"Please check your internet connection or model name.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error loading model: {e}")
         sys.exit(1)
 
+    # parse the arguments passed
     parser = argparse.ArgumentParser(
         description="A simple command-line AI chat application.",
         prog="searchterm"
@@ -121,11 +147,11 @@ def main():
                         help="Path to custom config file")
     parser.add_argument("--version", 
                         action="version", 
-                        version="searchterm 1.0.0")
-
+                        version="searchterm v1.0.0")
     args = parser.parse_args()
 
-    # Use custom config if provided
+
+    # use custom config if provided
     if args.config:
         if os.path.exists(args.config):
             config.read(args.config)
@@ -133,11 +159,9 @@ def main():
             print(f"Error: Config file {args.config} not found.")
             sys.exit(1)
 
+
+    # infer the model and give an answer
     try:
-        print("Loading model...")
-        model = GPT4All(model_name=MODEL, model_path=MODEL_PATH)
-        
-        print("Generating response...")
         with model.chat_session():
             response = model.generate(
                 prompt=args.prompt, 

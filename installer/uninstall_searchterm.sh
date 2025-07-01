@@ -3,7 +3,7 @@
 clear
 
 echo "=========================================="
-echo "      Searchterm Uninstallation Script   "
+echo "      SearchTerm Uninstallation Script   "
 echo "=========================================="
 echo ""
 
@@ -14,11 +14,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}Uninstalling searchterm...${NC}"
+echo -e "${BLUE}Uninstalling SearchTerm...${NC}"
 
 # Uninstall the package
 if pip3 uninstall searchterm -y; then
-    echo -e "${GREEN}✓ Searchterm package uninstalled${NC}"
+    echo -e "${GREEN}✓ SearchTerm package uninstalled${NC}"
 else
     echo -e "${RED}✗ Failed to uninstall package${NC}"
 fi
