@@ -9,6 +9,7 @@ import configparser
 import sys
 import pkg_resources
 from .model import Model
+from __init__ import __version__
 
 # colors for terminal output
 GREEN = "\033[92m"
@@ -77,7 +78,7 @@ def main():
                         help=f"Repeat penalty for response (default: {REPEAT_PENALTY})")
     parser.add_argument("--version", 
                         action="version", 
-                        version="searchterm v1.1.0-alpha")
+                        version=__version__)
     args = parser.parse_args()
 
     # create the model object instance
@@ -86,7 +87,7 @@ def main():
     if not curr_model:
         print(f"{YELLOW}Model verification failed. Not found in directory. Would you like to download {model.model_name}? (y/n) : {RESET}")
         choice = input().strip().lower()
-        
+
         if choice == 'y':
             model.download_model()
             # verify model again after download
