@@ -3,13 +3,18 @@
 Command-line interface for SearchTerm AI chat application
 """
 
-from gpt4all import GPT4All
 import os
 import argparse
 import configparser
 import sys
 import pkg_resources
+from .model import Model
 
+# colors for terminal output
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RED = "\033[91m"
+RESET = "\033[0m"
 
 def get_config_path():
     """Get the path to the config file, checking multiple locations"""
@@ -28,95 +33,27 @@ def get_config_path():
     if os.path.exists(home_config):
         return home_config
     
-    # Create default config in home directory
-    home_dir = os.path.expanduser("~/.searchterm")
-    os.makedirs(home_dir, exist_ok=True)
-    default_config = os.path.join(home_dir, "config.ini")
-    
-    # Create default config
-    config = configparser.ConfigParser()
-    config['Model Settings'] = {
-        'MODEL': 'Phi-3-mini-4k-instruct.Q4_0.gguf',
-        'MAX_TOKENS': '256',
-        'TEMP': '0.5',
-        'REPEAT_PENALTY': '1.1',
-        'STREAMING': 'False'
-    }
-    
-    with open(default_config, 'w') as f:
-        config.write(f)
-    
-    return default_config
 
-
-def get_model_path():
-    """Get the path to the models directory"""
-    # Try current directory first
-    if os.path.exists("models"):
-        return "models"
-    
-    # Try user's home directory
-    home_models = os.path.expanduser("~/.searchterm/models")
-    if os.path.exists(home_models):
-        return home_models
-    
-    # Create models directory in home
-    os.makedirs(home_models, exist_ok=True)
-    return home_models
-
-
-def model_exists(model_name, model_path):
-    """Check if the specified model file exists in the given path"""
-    model_file = os.path.join(model_path, model_name)
-    return os.path.exists(model_file)
-
-
-def main():
+def get_config_values():
     config = configparser.ConfigParser()
     config_path = get_config_path()
-    config.read(config_path)
-
+    config.read(config_path) # type: ignore
 
     # get the configuration values
     try:
-        MAX_TOKENS = config.getint("Model Settings", "MAX_TOKENS")
-        TEMP = config.getfloat("Model Settings", "TEMP")
-        REPEAT_PENALTY = config.getfloat("Model Settings", "REPEAT_PENALTY")
-        STREAMING = config.getboolean("Model Settings", "STREAMING")
-        MODEL = config.get("Model Settings", "MODEL").strip('"')  # Remove quotes from read string
+        MAX_TOKENS = config.getint("Settings", "MAX_TOKENS")
+        TEMP = config.getfloat("Settings", "TEMP")
+        REPEAT_PENALTY = config.getfloat("Settings", "REPEAT_PENALTY")
+
+        return MAX_TOKENS, TEMP, REPEAT_PENALTY
     except (configparser.NoSectionError, configparser.NoOptionError) as e:
         print(f"Error reading config file {config_path}: {e}")
         print("Please check your configuration file.")
         sys.exit(1)
 
-    # finding the model if it exists
-    MODEL_PATH = get_model_path()
 
-    # handling model download if it does not exist
-    try:
-        print("Checking for model...")
-        model_config = GPT4All.retrieve_model(
-            model_name=MODEL,
-            model_path=MODEL_PATH,
-            allow_download=True,
-            verbose=True
-        )
-        print(f"Model ready at: {model_config['path']}")
-        
-        # create the model instance using the retrieved config
-        model = GPT4All(
-            model_name=MODEL,
-            model_path=MODEL_PATH,
-            allow_download=False  # already handled download above
-        )      
-    except FileNotFoundError as e:
-        print(f"Error: {e}")
-        print(f"Failed to find or download model: {MODEL}")
-        print(f"Please check your internet connection or model name.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error loading model: {e}")
-        sys.exit(1)
+def main():
+    MAX_TOKENS, TEMP, REPEAT_PENALTY = get_config_values()
 
     # parse the arguments passed
     parser = argparse.ArgumentParser(
@@ -138,37 +75,38 @@ def main():
                         type=float, 
                         default=REPEAT_PENALTY, 
                         help=f"Repeat penalty for response (default: {REPEAT_PENALTY})")
-    parser.add_argument("--streaming", 
-                        action="store_true", 
-                        default=STREAMING, 
-                        help="Enable streaming for response")
-    parser.add_argument("--config", 
-                        type=str, 
-                        help="Path to custom config file")
     parser.add_argument("--version", 
                         action="version", 
-                        version="searchterm v1.0.0")
+                        version="searchterm v1.1.0-alpha")
     args = parser.parse_args()
 
-
-    # use custom config if provided
-    if args.config:
-        if os.path.exists(args.config):
-            config.read(args.config)
+    # create the model object instance
+    model = Model()
+    curr_model = model.verify_model()
+    if not curr_model:
+        print(f"{YELLOW}Model verification failed. Not found in directory. Would you like to download {model.model_name}? (y/n) : {RESET}")
+        choice = input().strip().lower()
+        
+        if choice == 'y':
+            model.download_model()
+            # verify model again after download
+            curr_model = model.verify_model()
+            if not curr_model:
+                print(f"{RED}Model download failed or model still not found. Exiting...{RESET}")
+                sys.exit(1)
         else:
-            print(f"Error: Config file {args.config} not found.")
+            print(f"{RED}Model not found and download skipped. Exiting...{RESET}")
             sys.exit(1)
 
 
     # infer the model and give an answer
     try:
-        with model.chat_session():
-            response = model.generate(
+        with curr_model.chat_session():
+            response = curr_model.generate(
                 prompt=args.prompt, 
                 max_tokens=args.max_tokens, 
                 temp=args.temp, 
-                repeat_penalty=args.repeat_penalty, 
-                streaming=args.streaming
+                repeat_penalty=args.repeat_penalty
             )
             print(response)
             
