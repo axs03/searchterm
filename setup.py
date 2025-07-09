@@ -4,10 +4,10 @@ from setuptools import setup, find_packages
 
 setup(
     name="searchterm",
-    version="1.0.0",
-    description="A command-line AI chat application",
-    author="Your Name",
-    author_email="your.email@example.com",
+    version="1.1.0",
+    description="command-line question-answering model",
+    author="Aman Sahu",
+    author_email="axs03@github.com",
     packages=find_packages(),
     python_requires=">=3.7",
     install_requires=[
@@ -16,7 +16,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "searchterm=searchterm.cli:main",
+            "st=searchterm.cli:main",
         ],
     },
     include_package_data=True,

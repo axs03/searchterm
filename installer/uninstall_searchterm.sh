@@ -3,7 +3,7 @@
 clear
 
 echo "=========================================="
-echo "      Searchterm Uninstallation Script   "
+echo "      searchterm Uninstall Script   "
 echo "=========================================="
 echo ""
 
@@ -18,12 +18,12 @@ echo -e "${BLUE}Uninstalling searchterm...${NC}"
 
 # Uninstall the package
 if pip3 uninstall searchterm -y; then
-    echo -e "${GREEN}✓ Searchterm package uninstalled${NC}"
+    echo -e "${GREEN}✓ searchterm package uninstalled${NC}"
 else
     echo -e "${RED}✗ Failed to uninstall package${NC}"
 fi
 
-# Ask user if they want to remove config and models
+
 echo ""
 echo -e "${YELLOW}Do you want to remove configuration and model files?${NC}"
 echo -e "${YELLOW}This will delete ~/.searchterm directory${NC}"

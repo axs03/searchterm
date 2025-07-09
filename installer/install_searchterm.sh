@@ -3,7 +3,7 @@
 clear
 
 echo "=========================================="
-echo "       Searchterm Installation Script    "
+echo "       searchterm Installation Script    "
 echo "=========================================="
 echo ""
 
@@ -40,7 +40,7 @@ echo "Current directory: $(pwd)"
 
 # Install the package in development mode
 if pip3 install -e .; then
-    echo -e "${GREEN}✓ Searchterm installed successfully!${NC}"
+    echo -e "${GREEN}✓ searchterm installed successfully!${NC}"
 else
     echo -e "${RED}✗ Installation failed!${NC}"
     exit 1
@@ -88,15 +88,15 @@ echo -e "           Installation Complete!        "
 echo -e "==========================================${NC}"
 echo ""
 echo -e "${BLUE}Usage:${NC}"
-echo "  searchterm \"Your question here\""
+echo "  st \"Your question here\""
 echo ""
 echo -e "${BLUE}Examples:${NC}"
-echo "  searchterm \"What is artificial intelligence?\""
-echo "  searchterm \"Explain quantum computing\" --max_tokens 500"
+echo "  st \"What is artificial intelligence?\""
+echo "  st \"Explain quantum computing\" --max_tokens 500"
 echo ""
 echo -e "${BLUE}Configuration:${NC}"
 echo "  Config file: $USER_CONFIG_DIR/config.ini"
 echo "  Models directory: $MODELS_DIR"
 echo ""
 echo -e "${BLUE}For help:${NC}"
-echo "  searchterm --help"
+echo "  st --help"

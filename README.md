@@ -1,6 +1,6 @@
 # Searchterm - Simple Command-Line AI Question Answering
 
-A simple command-line interface for interacting with AI models using GPT4All.
+A simple command-line interface for interacting with AI models using GPT4All in the backend.
 
 ## Installation
 

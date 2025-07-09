@@ -1,6 +1,6 @@
 """
-SearchTerm - A simple command-line AI application
+searchterm - simple command-line AI question-answering model
 """
 
-__version__ = "1.0.0"
+__version__ = "v1.1.0"
 __author__ = "axs03"
