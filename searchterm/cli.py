@@ -1,84 +1,43 @@
 #!/usr/bin/env python3
 """
-Command-line interface for SearchTerm AI chat application
+Command-line interface for searchterm AI chat application
 """
 
-import os
 import argparse
-import configparser
 import sys
-import pkg_resources
 from .model import Model
-from __init__ import __version__
-
-# colors for terminal output
-GREEN = "\033[92m"
-YELLOW = "\033[93m"
-RED = "\033[91m"
-RESET = "\033[0m"
-
-def get_config_path():
-    """Get the path to the config file, checking multiple locations"""
-    # Try current directory first
-    if os.path.exists("config.ini"):
-        return "config.ini"
-    
-    # Try package data
-    try:
-        return pkg_resources.resource_filename('searchterm', 'config.ini')
-    except:
-        pass
-    
-    # Try user's home directory
-    home_config = os.path.expanduser("~/.searchterm/config.ini")
-    if os.path.exists(home_config):
-        return home_config
-    
-
-def get_config_values():
-    config = configparser.ConfigParser()
-    config_path = get_config_path()
-    config.read(config_path) # type: ignore
-
-    # get the configuration values
-    try:
-        MAX_TOKENS = config.getint("Settings", "MAX_TOKENS")
-        TEMP = config.getfloat("Settings", "TEMP")
-        REPEAT_PENALTY = config.getfloat("Settings", "REPEAT_PENALTY")
-
-        return MAX_TOKENS, TEMP, REPEAT_PENALTY
-    except (configparser.NoSectionError, configparser.NoOptionError) as e:
-        print(f"Error reading config file {config_path}: {e}")
-        print("Please check your configuration file.")
-        sys.exit(1)
+from .config_loader import (
+    ConfigLoader,
+    RED, YELLOW, GREEN, RESET
+)
 
 
 def main():
-    MAX_TOKENS, TEMP, REPEAT_PENALTY = get_config_values()
+    config_loader = ConfigLoader()
 
     # parse the arguments passed
     parser = argparse.ArgumentParser(
         description="A simple command-line AI chat application.",
         prog="searchterm"
     )
-    parser.add_argument("prompt", 
-                        type=str, 
+    parser.add_argument("prompt",
+                        type=str,
                         help="Your prompt for the model")
-    parser.add_argument("--max_tokens", 
+    parser.add_argument("--max-tokens", 
                         type=int, 
-                        default=MAX_TOKENS, 
-                        help=f"Maximum tokens for response (default: {MAX_TOKENS})")
+                        default=config_loader.configvalues["MAX_TOKENS"], 
+                        help=f"Maximum tokens for response (default: {config_loader.configvalues['MAX_TOKENS']})")
     parser.add_argument("--temp", 
                         type=float, 
-                        default=TEMP, 
-                        help=f"Temperature for response (default: {TEMP})")
+                        default=config_loader.configvalues["TEMP"], 
+                        help=f"Temperature for response (default: {config_loader.configvalues['TEMP']})")
     parser.add_argument("--repeat_penalty", 
                         type=float, 
-                        default=REPEAT_PENALTY, 
-                        help=f"Repeat penalty for response (default: {REPEAT_PENALTY})")
+                        default=config_loader.configvalues["REPEAT_PENALTY"], 
+                        help=f"Repeat penalty for response (default: {config_loader.configvalues['REPEAT_PENALTY']})")
     parser.add_argument("--version", 
                         action="version", 
-                        version=__version__)
+                        version="")
     args = parser.parse_args()
 
     # create the model object instance
