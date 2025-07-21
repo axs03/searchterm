@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 from setuptools import setup, find_packages
+from searchterm import __version__ # prevent circular import
 
 setup(
     name="searchterm",
-    version="1.1.0",
+    version=__version__,
     description="command-line question-answering model",
     author="Aman Sahu",
     author_email="axs03@github.com",
@@ -13,6 +14,7 @@ setup(
     install_requires=[
         "gpt4all",
         "configparser",
+        "click>=8.0.0"
     ],
     entry_points={
         "console_scripts": [
