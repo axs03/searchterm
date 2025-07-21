@@ -5,6 +5,7 @@ Command-line interface for searchterm AI chat application
 
 import click
 import sys
+import os
 from .model import Model
 from .config_loader import (
     ConfigLoader,
@@ -12,13 +13,26 @@ from .config_loader import (
 )
 
 
-@click.group(invoke_without_command=True)
-@click.argument('prompt', required=False)
-@click.option('--max-tokens', type=int, help='Maximum tokens for response')
-@click.option('--temp', type=float, help='Temperature for response (0.0-1.0)')
-@click.option('--repeat-penalty', type=float, help='Repeat penalty for response (0.0-2.0)')
-@click.option('--version', is_flag=True, help='Show version and exit')
-@click.option('--settings', is_flag=True, help='Open interactive settings menu')
+@click.command()
+@click.argument(
+    'prompt', type=str, required=True,
+)
+@click.option(
+    '--max-tokens', type=int, help='Maximum tokens for response'
+)
+@click.option(
+    '--temp', type=float, help=f"Temperature for response (0.0-1.0)"
+)
+@click.option(
+    '--repeat-penalty', type=float, help=f"Repeat penalty for response (0.0-2.0)"
+)
+@click.option(
+    '--version', is_flag=True, help='Show version and exit'
+)
+@click.option(
+    '--settings', is_flag=True, help='Open interactive settings menu'
+)
+
 @click.pass_context
 def main(ctx, prompt, max_tokens, temp, repeat_penalty, version, settings):
     """A simple command-line AI chat application."""
@@ -37,17 +51,18 @@ def main(ctx, prompt, max_tokens, temp, repeat_penalty, version, settings):
         return
     
     # no command is specified and we have prompt, run the chat
-    if ctx.invoked_subcommand is None and prompt:
-        click.echo(f"{RED}Error: No prompt provided. Use 'st --help' for usage.{RESET}")
-        click.echo(f"{YELLOW}Tip: Use 'st settings' for configuration menu{RESET}")
-        sys.exit(1)
-        
+    if ctx.invoked_subcommand is None and prompt:        
         # reset to defaults if nothing given
         max_tokens = max_tokens or config_loader.configvalues["MAX_TOKENS"]
         temp = temp or config_loader.configvalues["TEMP"]
         repeat_penalty = repeat_penalty or config_loader.configvalues["REPEAT_PENALTY"]
         
         run_chat(prompt, max_tokens, temp, repeat_penalty)
+
+    elif ctx.invoked_subcommand is None and not prompt:
+        click.echo(f"{RED}Error: No prompt provided. Use 'st --help' for usage.{RESET}")
+        click.echo(f"{YELLOW}Tip: Use 'st --settings' for configuration menu{RESET}")
+        sys.exit(1)
 
 
 def run_chat(prompt, max_tokens, temp, repeat_penalty):
@@ -177,6 +192,21 @@ def advanced_settings_menu(config_loader):
             if click.confirm(click.style("Exit settings menu?", fg='red')):
                 return
 
+
+def config_path(ctx):
+    """Show the path to the configuration file"""
+    config_loader = ctx.obj['config_loader']
+    config_path = config_loader.get_config_path()
+    click.echo(f"Configuration file location: {GREEN}{config_path}{RESET}")
+    
+    if os.path.exists(config_path):
+        click.echo(f"Status: {GREEN} Exists{RESET}")
+        if os.access(config_path, os.W_OK):
+            click.echo(f"Permissions: {GREEN} Writable{RESET}")
+        else:
+            click.echo(f"Permissions: {RED} Not writable{RESET}")
+    else:
+        click.echo(f"Status: {YELLOW}⚠ Will be created on first save{RESET}")
 
 if __name__ == "__main__":
     main()
